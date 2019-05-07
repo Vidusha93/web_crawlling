@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 import string
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
+from nltk.stem.porter import PorterStemmer
 
 newsCategoryUrl = ['http://www.koreatimes.co.kr/www/sublist_129_', 'http://www.koreatimes.co.kr/www/sublist_602_', 'http://www.koreatimes.co.kr/www/sublist_398_']
 
@@ -39,12 +40,14 @@ stripped = [w.translate(table) for w in tokens]
 words = [word for word in stripped if word.isalpha()]
 stop_words = set(stopwords.words('english'))
 words = [w for w in words if not w in stop_words]
+porter = PorterStemmer()
+stemmed = [porter.stem(word) for word in words]
 
 print('Total Words Collected : ', len(words))
 
 words_dict = {}
 
-for word in words:
+for word in stemmed:
     if word not in words_dict:
         words_dict[word] = 1
     else:
@@ -52,9 +55,5 @@ for word in words:
 
 words_dict = sorted(words_dict.items(), key=lambda x: x[1], reverse=True)
 
-count = 0
-for x, y in words_dict:
-    print(x + ' : ', y)
-    count += 1
-    if count >= 10:
-        break
+
+print(words_dict[:10])
