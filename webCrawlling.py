@@ -4,34 +4,37 @@ import string
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem.porter import PorterStemmer
+from tqdm import tqdm
 
 newsCategoryUrl = ['http://www.koreatimes.co.kr/www/sublist_129_', 'http://www.koreatimes.co.kr/www/sublist_602_', 'http://www.koreatimes.co.kr/www/sublist_398_']
-
+print("www.koreatimes.co.kr Web Crawlling")
 soupList = []
-
-for url in newsCategoryUrl:
+pbar = tqdm(newsCategoryUrl, leave=False)
+for url in pbar:
     for i in range(1, 4):
         fullUrl = url + str(i) + '.html'
-        print('Collecting Page from URL : ' + fullUrl)
+        pbar.set_description(fullUrl)
         source = requests.get(fullUrl).text
         soup = BeautifulSoup(source, 'lxml')
         soupList.append(soup)
 
 text = ''
-
+gotArtical = 0
 for soup in soupList:
-    print('Collecting Headlines From : ' + soup.find('div' , class_='sub_TT subTT').a.text + ' Category')
-    for headline in soup.find_all('div', class_='list_article_headline HD'):
+    category = soup.find('div' , class_='sub_TT subTT').a.text
+    headlineBar = tqdm(soup.find_all('div', class_='list_article_headline HD'), leave=False)
+    for headline in headlineBar:
         try:
             article_link = headline.a.attrs['href']
-            print('Geting Article From : http://www.koreatimes.co.kr' + article_link)
+            headlineBar.set_description("Getting Artical frome " + category + " ")
             source = requests.get("http://www.koreatimes.co.kr" + article_link).text
             soup = BeautifulSoup(source, 'lxml')
             article = soup.find('div', class_='view_article').text
             text += ' ' + article
         except:
-            print('Headline does not have link for article : ', headline.text)
-
+            gotArtical += 1
+print(gotArtical, " Headlines does not have link for Artical!")
+print(" ")
 
 tokens = word_tokenize(text)
 tokens = [w.lower() for w in tokens]
